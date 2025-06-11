@@ -1,78 +1,70 @@
 import streamlit as st
-import pickle
+import pandas as pd
+import joblib
 
-# ------------------ PAGE CONFIG ------------------ #
-st.set_page_config(
-    page_title="RISERISE - Phishing Detector",
-    page_icon="🛡️",
-    layout="centered"
-)
+# -----------------------------
+# Page Config & Logo
+# -----------------------------
+st.set_page_config(page_title="RISERISE - Phishing Detector", page_icon="🛡️", layout="centered")
 
-# ------------------ CSS THEME ------------------ #
-st.markdown("""
+st.markdown(
+    """
     <style>
     body {
-        background-color: #0d1117;
-        color: #e6edf3;
+        background-color: #0f1117;
+        color: #f1f1f1;
+        font-family: 'Segoe UI', sans-serif;
     }
     .main {
-        background-color: #0d1117;
+        background-color: #1e2130;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 0 10px #00ffe5;
     }
-    h1, h2, h3, h4 {
-        color: #58a6ff;
-    }
-    .stTextInput>div>div>input {
-        background-color: #161b22;
-        color: white;
-        border: 1px solid #30363d;
-    }
-    .stButton>button {
-        background-color: #238636;
-        color: white;
-        border-radius: 8px;
-        padding: 0.5em 1.2em;
-        font-weight: bold;
+    h1, h2 {
+        color: #00ffe5;
     }
     </style>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
-# ------------------ HEADER ------------------ #
-st.title("🛡️ RISERISE")
-st.image("riserise_logo.png", width=200)
-st.markdown("### Smart Phishing URL Detection")
-st.markdown("_Protecting users from malicious websites using Machine Learning._")
+with st.container():
+    st.image("riserise_logo.png", width=150)  # Optional
+    st.title("🛡️ RISERISE - Phishing URL Detector")
+    st.markdown("Enter feature values of a URL to check if it's **Legitimate or Phishing**.")
 
-# ------------------ LOAD MODEL ------------------ #
+# -----------------------------
+# Load Model & Feature Names
+# -----------------------------
 @st.cache_resource
-def load_model_and_vectorizer():
-    with open("phishing_model.pkl", "rb") as model_file, open("vectorizer.pkl", "rb") as vec_file:
-        model = pickle.load(model_file)
-        vectorizer = pickle.load(vec_file)
-    return model, vectorizer
+def load_model():
+    model = joblib.load("phishing_model.joblib")
+    features = joblib.load("model_features.joblib")
+    return model, features
 
-def predict_url_ml(url, model, vectorizer):
-    features = vectorizer.transform([url])
-    prediction = model.predict(features)[0]
-    return "Phishing" if prediction == 1 else "Legitimate"
+model, features = load_model()
 
-model, vectorizer = load_model_and_vectorizer()
+# -----------------------------
+# User Input Fields
+# -----------------------------
+user_input = {}
+with st.form("phishing_form"):
+    st.subheader("🔍 Enter URL Feature Values:")
+    for feature in features:
+        user_input[feature] = st.number_input(f"{feature}:", step=1.0)
+    submitted = st.form_submit_button("🔐 Detect")
 
-# ------------------ URL INPUT ------------------ #
-st.markdown("#### 🔍 Enter the URL you want to scan:")
-url = st.text_input("Example: http://free-prizes.win/verify")
+# -----------------------------
+# Prediction Logic
+# -----------------------------
+if submitted:
+    input_df = pd.DataFrame([user_input])
+    prediction = model.predict(input_df)[0]
+    result = "🔴 Phishing URL" if prediction == 1 else "🟢 Legitimate URL"
 
-if st.button("🚀 Scan Now"):
-    if url.strip() == "":
-        st.warning("Please enter a URL.")
-    else:
-        with st.spinner("Analyzing URL... 🔐"):
-            result = predict_url_ml(url, model, vectorizer)
+    st.subheader("✅ Prediction Result:")
+    st.success(result if prediction == 0 else result, icon="🧠")
 
-        if result == "Phishing":
-            st.error("⚠️ This URL is likely **Phishing**. Avoid clicking!")
-        else:
-            st.success("✅ This URL is **Legitimate**.")
-
-# ------------------ FOOTER ------------------ #
-st.markdown("---")
-st.caption("🔒 Built for Cybersecurity Awareness | © 2025 RISERISE")
+    st.markdown("---")
+    st.caption("Model: Random Forest | Built with ❤️ by Yash")
