@@ -1,50 +1,48 @@
-import json
-from streamlit_lottie import st_lottie
-
-def load_lottie(path: str):
-    with open(path, "r") as file:
-        return json.load(file)
-
-lottie_animation = load_lottie("assets/animations.json")
-
-# Show animation on the app
-st_lottie(lottie_animation, speed=1, height=250, key="hello")
 import streamlit as st
+from streamlit_lottie import st_lottie
+import json
 import joblib
 import re
-from streamlit_lottie import st_lottie
-import json
 
-# Load animation
-def load_lottie(path: str):
-    with open(path, 'r') as f:
-        return json.load(f)
-
-# Load Model
-model = joblib.load('phishing_model.pkl')
-vectorizer = joblib.load('vectorizer.pkl')
-
-# Page Config
+# ✅ Set page config FIRST
 st.set_page_config(page_title="RISERISE - Phishing URL Detector", page_icon="🔐", layout="centered")
 
-# Background Animation
+# 🔄 Load Lottie animation
+def load_lottie(path: str):
+    with open(path, "r") as f:
+        return json.load(f)
+
 lottie_animation = load_lottie("assets/animations.json")
 
-# Title Section
-st_lottie(lottie_animation, speed=1, height=250)
+# 🧠 Load ML model and vectorizer
+model = joblib.load("models/phishing_model.pkl")
+vectorizer = joblib.load("models/vectorizer.pkl")
+
+# 🔐 Title & Animation
+st_lottie(lottie_animation, speed=1, height=250, key="riserise-anim")
 st.title("🔐 RISERISE: Phishing URL Detector")
 st.markdown("Protect yourself from phishing attacks with our ML-powered URL checker!")
 
-# Input
-url_input = st.text_input("🔗 Enter a URL to check:")
+# 🔍 Input Section
+st.subheader("🔗 Check a Suspicious URL")
+url_input = st.text_input("Paste a URL here:", placeholder="https://example.com")
 
-if st.button("Check"):
+if st.button("Check URL"):
     if url_input:
+        # Vectorize and predict
         test_vector = vectorizer.transform([url_input])
         prediction = model.predict(test_vector)[0]
+
+        # Show colored result with clickable link
         if prediction == 1:
-            st.error("⚠️ This is likely a **phishing** website!")
+            st.markdown(
+                f"<p style='color:red;font-weight:bold;'>⚠️ This URL is likely <u>Phishing</u>: <a href='{url_input}' style='color:red;' target='_blank'>{url_input}</a></p>",
+                unsafe_allow_html=True
+            )
         else:
-            st.success("✅ This appears to be a **safe** website.")
+            st.markdown(
+                f"<p style='color:green;font-weight:bold;'>✅ This URL appears <u>Safe</u>: <a href='{url_input}' style='color:green;' target='_blank'>{url_input}</a></p>",
+                unsafe_allow_html=True
+            )
     else:
-        st.warning("Please enter a URL.")
+        st.warning("Please paste a URL to check.")
