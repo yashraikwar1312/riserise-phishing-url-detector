@@ -2,7 +2,7 @@ import streamlit as st
 import pickle
 
 # ------------------ SETTINGS ------------------ #
-st.set_page_config(page_title="RISERISE - Phishing Detector", page_icon="🛡️", layout="centered")
+st.set_page_config(page_title="RISERISE st.image("riserise_logo.png", width=200) - Phishing Detector", page_icon="🛡️", layout="centered")
 
 # ------------------ CSS STYLING ------------------ #
 st.markdown("""
