@@ -1,3 +1,14 @@
+import json
+from streamlit_lottie import st_lottie
+
+def load_lottie(path: str):
+    with open(path, "r") as file:
+        return json.load(file)
+
+lottie_animation = load_lottie("assets/animations.json")
+
+# Show animation on the app
+st_lottie(lottie_animation, speed=1, height=250, key="hello")
 import streamlit as st
 import joblib
 import re
