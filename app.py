@@ -1,10 +1,14 @@
 import streamlit as st
 import pickle
 
-# ------------------ SETTINGS ------------------ #
-st.set_page_config(page_title="RISERISE st.image("riserise_logo.png", width=200) - Phishing Detector", page_icon="🛡️", layout="centered")
+# ------------------ PAGE CONFIG ------------------ #
+st.set_page_config(
+    page_title="RISERISE - Phishing Detector",
+    page_icon="🛡️",
+    layout="centered"
+)
 
-# ------------------ CSS STYLING ------------------ #
+# ------------------ CSS THEME ------------------ #
 st.markdown("""
     <style>
     body {
@@ -29,21 +33,16 @@ st.markdown("""
         padding: 0.5em 1.2em;
         font-weight: bold;
     }
-    .stRadio > div {
-        background-color: #161b22;
-        color: white;
-        border-radius: 10px;
-        padding: 10px;
-    }
     </style>
 """, unsafe_allow_html=True)
 
 # ------------------ HEADER ------------------ #
 st.title("🛡️ RISERISE")
+st.image("riserise_logo.png", width=200)
 st.markdown("### Smart Phishing URL Detection")
 st.markdown("_Protecting users from malicious websites using Machine Learning._")
 
-# ------------------ MODEL LOADING ------------------ #
+# ------------------ LOAD MODEL ------------------ #
 @st.cache_resource
 def load_model_and_vectorizer():
     with open("phishing_model.pkl", "rb") as model_file, open("vectorizer.pkl", "rb") as vec_file:
@@ -58,7 +57,7 @@ def predict_url_ml(url, model, vectorizer):
 
 model, vectorizer = load_model_and_vectorizer()
 
-# ------------------ INPUT SECTION ------------------ #
+# ------------------ URL INPUT ------------------ #
 st.markdown("#### 🔍 Enter the URL you want to scan:")
 url = st.text_input("Example: http://free-prizes.win/verify")
 
