@@ -1,70 +1,30 @@
-import streamlit as st
-import pandas as pd
-import joblib
+import streamlit as st import pandas as pd import joblib
 
-# -----------------------------
-# Page Config & Logo
-# -----------------------------
-st.set_page_config(page_title="RISERISE - Phishing Detector", page_icon="🛡️", layout="centered")
+Load model and features
 
-st.markdown(
-    """
-    <style>
-    body {
-        background-color: #0f1117;
-        color: #f1f1f1;
-        font-family: 'Segoe UI', sans-serif;
-    }
-    .main {
-        background-color: #1e2130;
-        padding: 2rem;
-        border-radius: 15px;
-        box-shadow: 0 0 10px #00ffe5;
-    }
-    h1, h2 {
-        color: #00ffe5;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+model = joblib.load("phishing_model.joblib") features = joblib.load("model_features.joblib")
 
-with st.container():
-    st.image("riserise_logo.png", width=150)  # Optional
-    st.title("🛡️ RISERISE - Phishing URL Detector")
-    st.markdown("Enter feature values of a URL to check if it's **Legitimate or Phishing**.")
+Set page config
 
-# -----------------------------
-# Load Model & Feature Names
-# -----------------------------
-@st.cache_resource
-def load_model():
-    model = joblib.load("phishing_model.joblib")
-    features = joblib.load("model_features.joblib")
-    return model, features
+st.set_page_config(page_title="RISERISE - Phishing URL Detector", page_icon="🛡️", layout="centered")
 
-model, features = load_model()
+Cybersecurity theme styling
 
-# -----------------------------
-# User Input Fields
-# -----------------------------
-user_input = {}
-with st.form("phishing_form"):
-    st.subheader("🔍 Enter URL Feature Values:")
-    for feature in features:
-        user_input[feature] = st.number_input(f"{feature}:", step=1.0)
-    submitted = st.form_submit_button("🔐 Detect")
+st.markdown( """ <style> body { background-color: #0f111a; color: #c7c7c7; } .stButton>button { background-color: #1f2937; color: white; border-radius: 8px; padding: 0.5em 1em; } .stTextInput>div>div>input { background-color: #1f1f2e; color: white; } </style> """, unsafe_allow_html=True )
 
-# -----------------------------
-# Prediction Logic
-# -----------------------------
-if submitted:
-    input_df = pd.DataFrame([user_input])
-    prediction = model.predict(input_df)[0]
-    result = "🔴 Phishing URL" if prediction == 1 else "🟢 Legitimate URL"
+Title
 
-    st.subheader("✅ Prediction Result:")
-    st.success(result if prediction == 0 else result, icon="🧠")
+st.title("🛡️ RISERISE") st.subheader("Phishing URL Detection Tool")
 
-    st.markdown("---")
-    st.caption("Model: Random Forest | Built with ❤️ by Yash")
+Instruction
+
+st.markdown("Enter the website feature details to check if it's phishing or safe.")
+
+Input form
+
+with st.form("url_form"): input_data = {} for col in features: dtype = float if "Ratio" in col or "Score" in col or "Length" in col or col.startswith("NoOf") else int val = st.text_input(f"{col}:") try: input_data[col] = dtype(val) except: input_data[col] = 0  # fallback default submitted = st.form_submit_button("Check")
+
+Prediction
+
+if submitted: try: df = pd.DataFrame([input_data]) prediction = model.predict(df)[0] if prediction == 1: st.error("🚨 This URL is phishing.") else: st.success("✅ This URL is legitimate.") except Exception as e: st.warning(f"Prediction failed: {e}")
+
